@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-function QATool() {
+function QATool({ autonomous = true }) {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState('')
   const [sourceDocs, setSourceDocs] = useState([])
@@ -21,12 +21,28 @@ function QATool() {
     setSourceDocs([])
 
     try {
-      const response = await axios.post('/api/v1/qa', {
-        question: question
-      })
+      const endpoint = autonomous ? '/api/v1/auto' : '/api/v1/qa'
+      const payload = autonomous ? { question } : { question }
+      const response = await axios.post(endpoint, payload)
 
-      setAnswer(response.data.answer)
-      setSourceDocs(response.data.source_documents || [])
+      if (autonomous) {
+        const route = response.data.route
+        if (route === 'qa') {
+          setAnswer(response.data.result.answer)
+          setSourceDocs(response.data.result.source_documents || [])
+        } else if (route === 'summary') {
+          setAnswer(response.data.result.summary)
+          setSourceDocs([])
+        } else if (route === 'extract') {
+          setAnswer(JSON.stringify(response.data.result.data, null, 2))
+          setSourceDocs([])
+        } else {
+          setAnswer('Unknown route response')
+        }
+      } else {
+        setAnswer(response.data.answer)
+        setSourceDocs(response.data.source_documents || [])
+      }
       toast.success('Question answered successfully!')
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || 'Failed to get answer'

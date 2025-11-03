@@ -7,6 +7,7 @@ import ExtractTool from './components/ExtractTool'
 
 function App() {
   const [activeTab, setActiveTab] = useState('qa')
+  const [autonomous, setAutonomous] = useState(true)
 
   const tabs = [
     { id: 'qa', name: 'Q&A Tool', icon: '💬', description: 'Ask questions about documents' },
@@ -62,13 +63,29 @@ function App() {
               </button>
             ))}
           </div>
+          <div className="mt-4 flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-700">Autonomous Mode</span>
+            <button
+              onClick={() => setAutonomous(!autonomous)}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                autonomous ? 'bg-green-500' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform ${
+                  autonomous ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
+            <span className="text-xs text-gray-500">When on, queries route to /api/v1/auto</span>
+          </div>
         </div>
 
         {/* Content Card */}
         <div className="glass-effect rounded-3xl shadow-2xl p-8 card-hover">
-          {activeTab === 'qa' && <QATool />}
-          {activeTab === 'summary' && <SummaryTool />}
-          {activeTab === 'extract' && <ExtractTool />}
+          {activeTab === 'qa' && <QATool autonomous={autonomous} />}
+          {activeTab === 'summary' && <SummaryTool autonomous={autonomous} />} 
+          {activeTab === 'extract' && <ExtractTool autonomous={autonomous} />}
         </div>
 
         {/* Footer */}

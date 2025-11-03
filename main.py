@@ -102,7 +102,8 @@ async def root():
             "health": "/api/v1/health",
             "qa": "/api/v1/qa",
             "summary": "/api/v1/summary",
-            "extract": "/api/v1/extract"
+            "extract": "/api/v1/extract",
+            "auto": "/api/v1/auto"
         }
     }
 

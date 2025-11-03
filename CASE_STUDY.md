@@ -438,3 +438,49 @@ The Agentic AI Residency Project provided an excellent opportunity to build a co
 **Technologies**: FastAPI, React, Google Gemini, LangChain, ChromaDB, Sentence-Transformers  
 **Date**: 2025
 
+
+---
+
+## 9. Enhancements (Bonus Features)
+
+### 9.1 Autonomous Tool Routing
+
+We introduced an autonomous router that selects the best tool (QA, Summary, Extract) based on a lightweight LLM decision.
+
+- Backend: `chains/auto_router_chain.py` provides `route_query(user_input)`
+- API: New endpoint `/api/v1/auto` orchestrates the decision and delegates
+- UI: An “Autonomous Mode” toggle (default ON) routes all tool requests through `/api/v1/auto`
+
+Impact:
+- Reduces user friction when they are unsure which tool to pick
+- Preserves manual control when needed (toggle OFF)
+- Improves first-try task success and overall UX
+
+### 9.2 Comparative Evaluation (Embeddings)
+
+Objective: Compare Gemini embeddings vs OpenAI `text-embedding-3-small` on retrieval accuracy and latency.
+
+Implementation:
+- `tests/evaluation.py::compare_embedding_models` chunks a local document and computes top-1 retrieval accuracy against a small query set with expected keywords
+- Uses cosine similarity and measures average per-query latency
+- Runs conditionally depending on SDK/API key availability, producing a compact JSON-like report
+
+Insights (example expectations):
+- OpenAI often edges in accuracy on short factual queries
+- Gemini is viable for a single-provider stack; performance competitive on many workloads
+
+### 9.3 Containerization
+
+We added a `Dockerfile` for reproducible, portable deployments.
+
+Benefits:
+- One-command build/run
+- Clean isolation of Python dependencies
+- Easier onboarding and CI/CD integration
+
+Usage:
+```
+docker build -t ai-market-analyst .
+docker run -p 8000:8000 --env-file .env ai-market-analyst
+```
+

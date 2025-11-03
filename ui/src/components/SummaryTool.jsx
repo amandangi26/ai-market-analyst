@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-function SummaryTool() {
+function SummaryTool({ autonomous = true }) {
   const [text, setText] = useState('')
   const [summary, setSummary] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,12 +19,24 @@ function SummaryTool() {
     setSummary('')
 
     try {
-      const response = await axios.post('/api/v1/summary', {
-        text: text,
-        max_length: 500
-      })
+      const endpoint = autonomous ? '/api/v1/auto' : '/api/v1/summary'
+      const payload = autonomous ? { text } : { text: text, max_length: 500 }
+      const response = await axios.post(endpoint, payload)
 
-      setSummary(response.data.summary)
+      if (autonomous) {
+        const route = response.data.route
+        if (route === 'summary') {
+          setSummary(response.data.result.summary)
+        } else if (route === 'qa') {
+          setSummary(response.data.result.answer)
+        } else if (route === 'extract') {
+          setSummary(JSON.stringify(response.data.result.data, null, 2))
+        } else {
+          setSummary('Unknown route response')
+        }
+      } else {
+        setSummary(response.data.summary)
+      }
       toast.success('Summary generated successfully!')
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || 'Failed to generate summary'

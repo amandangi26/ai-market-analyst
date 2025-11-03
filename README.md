@@ -138,6 +138,29 @@ Content-Type: application/json
 }
 ```
 
+### Autonomous Routing (NEW)
+```bash
+POST /api/v1/auto
+Content-Type: application/json
+
+# Example 1: Q&A intent
+{ "question": "What is the company name?" }
+
+# Example 2: Summarization intent
+{ "text": "Long text here..." }
+
+# Example 3: Extraction intent
+{ "text": "Invoice for $123 by ACME", "schema": { "vendor":"string", "amount":"number" } }
+```
+
+Response always includes the selected route and the result:
+```json
+{
+  "route": "qa|summary|extract",
+  "result": { /* same shape as the respective endpoint */ }
+}
+```
+
 **Response:**
 ```json
 {
@@ -295,6 +318,11 @@ curl -X POST http://localhost:8000/api/v1/extract \
 - **SummaryTool**: Text summarization with file upload support
 - **ExtractTool**: JSON schema-based extraction with example templates
 
+### 🧭 Autonomous Mode Toggle (NEW)
+- Toggle is shown above the tabs in the UI (default ON)
+- When ON: all requests are sent to `/api/v1/auto` and auto-routed
+- When OFF: each tool calls its specific endpoint (`/qa`, `/summary`, `/extract`)
+
 ## 🔒 Security Features
 
 - **Prompt Injection Detection**: Regex-based patterns to detect malicious inputs
@@ -314,6 +342,39 @@ curl -X POST http://localhost:8000/api/v1/extract \
 - **Guardrails can be disabled** by setting `ENABLE_GUARDRAILS=False` in `.env`
 - **Easy model switching**: Change `LLM_MODEL` in `.env` to switch between flash/pro
 - **Offline Operation**: Only Gemini API calls require internet; embeddings and vector store work offline
+
+## 🔬 Comparative Evaluation (NEW)
+
+- Compare Gemini embeddings vs OpenAI `text-embedding-3-small` (if available)
+- Run programmatically from `tests/evaluation.py` via `compare_embedding_models`
+- Metrics reported: accuracy (% correct top-1 chunk), avg latency per query (ms)
+
+Example usage snippet:
+```python
+from tests.evaluation import compare_embedding_models
+from ingestion.document_loader import load_documents
+
+docs = load_documents()
+text = "\n\n".join([d.page_content for d in docs])
+queries = [
+  ("What quarter is reported?", "Q3 2025"),
+  ("Which competitors are named?", "FutureFlow"),
+]
+report = compare_embedding_models(text, queries)
+print(report)
+```
+
+Recommendation: Use OpenAI for higher accuracy when keys are available; Gemini for a single-provider stack.
+
+## 🐳 Containerization (NEW)
+
+Build and run with Docker:
+```bash
+docker build -t ai-market-analyst .
+docker run -p 8000:8000 --env-file .env ai-market-analyst
+```
+
+Optional: Add a `docker-compose.yml` to run backend and frontend together.
 
 ## 🐛 Troubleshooting
 

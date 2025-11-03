@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
-function ExtractTool() {
+function ExtractTool({ autonomous = true }) {
   const [text, setText] = useState('')
   const [schema, setSchema] = useState('')
   const [extracted, setExtracted] = useState(null)
@@ -60,16 +60,24 @@ function ExtractTool() {
     setError(null)
 
     try {
-      const response = await axios.post('/api/v1/extract', {
-        text: text,
-        schema: parsedSchema  // Frontend sends 'schema', backend maps to 'json_schema'
-      })
+      const endpoint = autonomous ? '/api/v1/auto' : '/api/v1/extract'
+      const payload = autonomous ? { text: text, schema: parsedSchema } : { text: text, schema: parsedSchema }
+      const response = await axios.post(endpoint, payload)
 
-      if (response.data && response.data.data) {
-        setExtracted(response.data.data)
-        toast.success('Data extracted successfully!')
+      if (autonomous) {
+        if (response.data && response.data.result && response.data.result.data) {
+          setExtracted(response.data.result.data)
+          toast.success('Data extracted successfully!')
+        } else {
+          throw new Error('Invalid response format')
+        }
       } else {
-        throw new Error('Invalid response format')
+        if (response.data && response.data.data) {
+          setExtracted(response.data.data)
+          toast.success('Data extracted successfully!')
+        } else {
+          throw new Error('Invalid response format')
+        }
       }
     } catch (error) {
       const errorMsg = error.response?.data?.detail || error.message || 'Failed to extract data'
