@@ -19,6 +19,23 @@ INJECTION_PATTERNS = [
     r"<\|im_start\|>|<\|im_end\|>",  # ChatML markers
 ]
 
+# Stronger block patterns for explicit malicious intents
+BLOCK_PATTERNS = [
+    r"ignore all previous instructions",
+    r"reveal.*system prompt",
+    r"show.*api.?key",
+    r"disable guardrails",
+    r"bypass.*filter",
+    r"execute",
+    r"rm\s+-rf",
+    r"open\('.*'\)",
+    r"config\.py",
+    r"system prompt",
+    r"jailbreak",
+    r"sudo",
+    r"terminal command",
+]
+
 
 def check_prompt_injection(text: str) -> bool:
     """
@@ -40,6 +57,19 @@ def check_prompt_injection(text: str) -> bool:
             return True
     
     return False
+
+
+def is_prompt_safe(prompt: str) -> bool:
+    """
+    Lightweight safety check against explicit block patterns.
+    Returns False if a known dangerous signature is detected.
+    """
+    if not prompt:
+        return True
+    for pattern in BLOCK_PATTERNS:
+        if re.search(pattern, prompt, re.IGNORECASE):
+            return False
+    return True
 
 
 def validate_input(text: str, input_type: str = "query") -> None:

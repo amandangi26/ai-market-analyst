@@ -2,6 +2,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Dict, Any, Optional
+import logging
 import utils.guardrails as guardrails
 from chains.qa_chain import answer_question
 from chains.summary_chain import summarize_text
@@ -9,6 +10,7 @@ from chains.extraction_chain import extract_structured_data
 from chains.auto_router_chain import route_query
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 # Request/Response models
@@ -62,6 +64,13 @@ async def qa_endpoint(request: QARequest):
     """Answer questions using RAG pipeline."""
     try:
         guardrails.validate_input(request.question, "query")
+        # Block clearly dangerous or malicious prompts
+        if hasattr(guardrails, "is_prompt_safe") and not guardrails.is_prompt_safe(request.question):
+            logger.warning(f"Guardrails blocked suspicious prompt: {request.question[:100]}")
+            return QAResponse(
+                answer="🚫 Dangerous prompt detected and blocked by guardrails. Please provide a valid business query.",
+                source_documents=[]
+            )
         result = answer_question(request.question)
         return QAResponse(
             answer=result["answer"],

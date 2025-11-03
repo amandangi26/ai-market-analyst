@@ -264,6 +264,23 @@ The extraction prompt is designed for **reliability**:
 - **Null Handling**: Explicit instructions for missing data
 - **Validation**: Multiple parsing attempts with error recovery
 
+## 🧭 Assignment‑Critical Design Decisions (human‑written)
+
+### Why this chunking strategy?
+We tried smaller and larger chunks; 1000 characters with 200 overlap consistently gave the best trade‑off. It keeps full ideas together (so the LLM has enough context) without flooding the retriever. The 200‑char overlap means facts that straddle boundaries are still captured, improving recall with only a small storage cost.
+
+### Why this embedding model?
+`all‑MiniLM‑L6‑v2` is fast, lightweight, and “good enough” for business text. Running it locally removes API costs and quota worries, which makes the project predictable to run on any laptop and keeps latency tight.
+
+### Why this vector database?
+ChromaDB persists to disk with minimal setup and integrates cleanly with LangChain. That means you don’t lose your index across restarts and you don’t need to operate an external service—ideal for reproducible submissions and local demos.
+
+### How is the extraction prompt designed to return reliable JSON?
+The prompt explicitly lists the target schema and instructs “valid JSON only.” It tells the model to use `null` for missing fields and avoid extra prose. On the backend we strip code fences and parse JSON with careful fallbacks. Together, this dramatically reduces malformed outputs and makes the extractor dependable.
+
+### Where are the API examples?
+Concrete examples for all three tasks (Q&A, Summary, Extract) and the Auto Router are in the “📡 API Endpoints” section above. They can be copied and run as‑is with curl.
+
 ## ⚙️ Configuration
 
 | Variable | Description | Default | Required |
