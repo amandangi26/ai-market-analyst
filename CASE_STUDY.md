@@ -436,5 +436,5 @@ The Agentic AI Residency Project provided an excellent opportunity to build a co
 
 **Built for the Agentic AI Residency Project**  
 **Technologies**: FastAPI, React, Google Gemini, LangChain, ChromaDB, Sentence-Transformers  
-**Date**: 2024
+**Date**: 2025
 
